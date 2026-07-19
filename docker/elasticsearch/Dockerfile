@@ -1,0 +1,1 @@
+FROM docker-elasticsearch:latest
