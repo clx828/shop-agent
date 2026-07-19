@@ -12,14 +12,14 @@ logging:
 db_meta:
   host: localhost
   port: 3306
-  user: root
+  user: cjc2002
   password: cjc202828
   database: meta
 
 db_dw:
   host: localhost
   port: 3306
-  user: root
+  user: cjc2002
   password: cjc202828
   database: dw
 

@@ -5,8 +5,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: cjc202828
-      MYSQL_USER: root
+      MYSQL_USER: cjc2002
       MYSQL_PASSWORD: cjc202828
+
     ports:
       - "3306:3306"
     volumes:
@@ -14,6 +15,7 @@ services:
       - ./mysql:/docker-entrypoint-initdb.d
     command: --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
+      --default-authentication-plugin=mysql_native_password
 
   elasticsearch:
     build: ./elasticsearch

@@ -3,6 +3,7 @@ name = "shopkeeper-agent"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "aiomysql>=0.3.2",
     "asyncmy>=0.2.11",
     "cryptography>=47.0.0",
     "elasticsearch[async]>=8,<9",
