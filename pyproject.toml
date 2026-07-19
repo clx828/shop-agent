@@ -1,7 +1,7 @@
 [project]
 name = "shopkeeper-agent"
 version = "0.1.0"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 dependencies = [
     "asyncmy>=0.2.11",
     "cryptography>=47.0.0",
@@ -18,7 +18,7 @@ dependencies = [
     "omegaconf>=2.3.1",
     "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
-    "qdrant-client>=1.16.1",
+    "qdrant-client>=1.12.0,<1.17.0",
     "sqlalchemy>=2.0.51",
 ]
 [[tool.uv.index]]
