@@ -1,23 +1,50 @@
-"""
-指标召回节点
-
-负责根据用户问题从指标向量知识库中召回候选指标
-它帮助 Agent 把“销售额 转化率 客单价”等业务表达映射到已定义指标
-"""
-
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
 from langgraph.runtime import Runtime
 
 from app.agent.context import DataAgentContext
+from app.agent.llm import llm
 from app.agent.state import DataAgentState
+from app.entities.metric_info import MetricInfo
+from app.prompt.prompt_loader import load_prompt
+from app.core.log import logger
 
 
 async def recall_metric(state: DataAgentState, runtime: Runtime[DataAgentContext]):
-    """召回和用户问题语义相关的业务指标"""
-
     writer = runtime.stream_writer
-    # 指标召回和字段召回并行执行，输出进度可以看清图的运行顺序
     writer("召回指标信息")
-    import asyncio
 
-    # 当前章节先保留占位逻辑，后续接入 MetricQdrantRepository 查询
-    await asyncio.sleep(0.5)
+    query = state["query"]
+    keywords = state["keywords"]
+    embedding_client = runtime.context["embedding_client"]
+    metric_qdrant_repository = runtime.context["metric_qdrant_repository"]
+
+    # 指标扩展关注“怎么算”，例如销售总额可扩展成 GMV、成交额、交易额
+    prompt = PromptTemplate(
+        template=load_prompt("extend_keywords_for_metric_recall"),
+        input_variables=["query"],
+    )
+    output_parser = JsonOutputParser()
+
+    full_text = ""
+    async for chunk in (prompt | llm).astream({"query": query}):
+        print(chunk.content, end="", flush=True)
+        full_text += chunk.content
+    print()
+    result = output_parser.parse(full_text)
+    keywords = set(keywords + result)
+
+    metric_info_map: dict[str, MetricInfo] = {}
+    for keyword in keywords:
+        embedding = await embedding_client.aembed_query(keyword)
+        current_metric_infos: list[MetricInfo] = await metric_qdrant_repository.search(
+            embedding
+        )
+        for metric_info in current_metric_infos:
+            if metric_info.id not in metric_info_map:
+                metric_info_map[metric_info.id] = metric_info
+
+    retrieved_metric_infos: list[MetricInfo] = list(metric_info_map.values())
+
+    logger.info(f"检索到指标信息：{list(metric_info_map.keys())}")
+    return {"retrieved_metric_infos": retrieved_metric_infos}

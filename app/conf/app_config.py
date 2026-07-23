@@ -4,6 +4,19 @@ from pathlib import Path
 from omegaconf import OmegaConf
 
 
+def _load_local_config(file_path: str, key_path: str = "") -> str:
+    config_path = Path(__file__).parents[2] / 'conf' / file_path
+    if not config_path.exists():
+        return ""
+    local_cfg = OmegaConf.load(config_path)
+    if key_path:
+        return OmegaConf.select(local_cfg, key_path, default="")
+    return local_cfg
+
+
+OmegaConf.register_new_resolver("local", _load_local_config)
+
+
 # 文件日志配置，对应 logging.file 这一组参数
 @dataclass
 class File:
@@ -87,7 +100,6 @@ class AppConfig:
 # 再定位到 conf/app_config.yaml 这个配置文件
 config_file = Path(__file__).parents[2] / 'conf' / 'app_config.yaml'
 
-# 读取 YAML 配置内容
 context = OmegaConf.load(config_file)
 
 # 根据 AppConfig 生成一份“结构化配置 schema”
